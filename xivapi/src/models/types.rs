@@ -3,7 +3,7 @@ pub enum XIVType {
 }
 
 impl XIVType {
-  pub fn get_str(&self) -> &str {
+  pub fn get_type_str(&self) -> &str {
     match self {
       XIVType::Item => "Item"
     }
