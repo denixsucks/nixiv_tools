@@ -1,6 +1,7 @@
 use crate::{endpoint, Error};
 use super::types::XIVType;
 
+#[derive(serde::Deserialize, serde::Serialize)]
 pub struct Item {
   pub id: u32,
   pub name: String,
@@ -27,8 +28,8 @@ impl Item {
     Self::default()
   }
 
-  pub fn get_item_from_id(id: u32) -> Result<Item, Box<dyn Error>> {
-    let data = endpoint::get_data(id, XIVType::Item)?;
+  pub async fn get_item_from_id(id: u32) -> Result<Item, Box<dyn Error>> {
+    let data = endpoint::get_data(id, XIVType::Item).await?;
     let fields = data["fields"].as_object().ok_or("No 'fields' found in JSON")?;
 
     let id = id;
