@@ -1,4 +1,4 @@
-use crate::xiv::item::Item;
+use crate::xivapi::models::item::Item;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
@@ -73,11 +73,11 @@ fn draw_center(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
   _ui.heading("Nixiv Tools");
   _ui.text_edit_singleline(&mut _s.label);
 
-  if _ui.button("update").clicked() {
+  if _ui.button("Update").clicked() {
     let parsed_result: Result<u32, _> = _s.label.parse();
     match update_button(parsed_result, _ui) {
       Ok(item) => {
-        _s.item_info = format!("Item: id = {}, name = {}", item.id, item.name);
+        _s.item_info = format!("Item: id = {}, name = {}, hq = {}", item.id, item.name, item.can_be_hq);
       },
       Err(e) => {
         _s.item_info = format!("Failed to retrieve item: {}", e);
