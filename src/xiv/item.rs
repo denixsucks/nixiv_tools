@@ -1,4 +1,5 @@
 use crate::{endpoint, xiv::Error};
+use super::types::XIVType;
 
 pub struct Item {
   pub id: u32,
@@ -25,7 +26,7 @@ impl Item {
   }
 
   pub fn get_item_from_id(id: u32) -> Result<Item, Box<dyn Error>> {
-    let data = endpoint::get_data(id, "Item")?;
+    let data = endpoint::get_data(id, XIVType::Item)?;
     let fields = data["fields"].as_object().ok_or("No 'fields' found in JSON")?;
     let name_value = fields["Name"].as_str().ok_or("No 'Name' found in JSON")?;
     let id = id;
