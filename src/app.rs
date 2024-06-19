@@ -4,6 +4,7 @@ use crate::xiv::item::Item;
 #[serde(default)]
 pub struct NixivApp {
   label: String,
+  item_info: String,
 
   #[serde(skip)]
   value: f32,
@@ -12,7 +13,8 @@ pub struct NixivApp {
 impl Default for NixivApp {
   fn default() -> Self {
     Self {
-      label: "Hello World!".to_owned(),
+      label: "".to_owned(),
+      item_info: "".to_owned(),
       value: 2.7,
     }
   }
@@ -40,6 +42,8 @@ impl eframe::App for NixivApp {
 
     egui::CentralPanel::default().show(ctx, |ui| {
       draw_center(self, ctx, ui);
+      ui.separator();
+      draw_bottom(self, ctx, ui);
     });
   }
 
@@ -68,34 +72,52 @@ fn draw_header(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
 fn draw_center(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
   _ui.heading("Nixiv Tools");
   _ui.text_edit_singleline(&mut _s.label);
+
   if _ui.button("update").clicked() {
     let parsed_result: Result<u32, _> = _s.label.parse();
-    update_button(parsed_result, _ui);
+    match update_button(parsed_result, _ui) {
+      Ok(item) => {
+        _s.item_info = format!("Item: id = {}, name = {}", item.id, item.name);
+      },
+      Err(e) => {
+        _s.item_info = format!("Failed to retrieve item: {}", e);
+      }
+    }
   }
+
+  _ui.heading(&_s.item_info);
 }
 
-fn draw_bottom(s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
 
+fn draw_bottom(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
+  _ui.add(egui::github_link_file!(
+    "https://github.com/emilk/eframe_template/blob/main/",
+    "Source code."
+  ));
+
+  _ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+    egui::warn_if_debug_build(ui);
+  });
 }
 
-
-fn update_button<E: std::fmt::Debug>(parsed_result: Result<u32, E>, _ui: &mut egui::Ui) {
+fn update_button<E: std::fmt::Debug>(parsed_result: Result<u32, E>, _ui: &mut egui::Ui) -> Result<Item, String> {
   match parsed_result {
     Ok(item_id) => {
       match Item::get_item_from_id(item_id) {
-        Ok(item) => {
-          _ui.heading(format!("Item: id = {}, name = {}", item.id, item.name));
-        },
+        Ok(item) => Ok(item),
         Err(e) => {
           eprintln!("Error: {}", e);
+          Err(format!("Error: {}", e))
         },
       }
     },
     Err(e) => {
       eprintln!("Error parsing string to unsigned integer: {:?}", e);
+      Err(format!("Error parsing string to unsigned integer: {:?}", e))
     },
   }
 }
+
 
 fn clear_app()
 {
