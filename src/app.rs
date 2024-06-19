@@ -75,7 +75,7 @@ fn draw_center(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
 
   if _ui.button("Update").clicked() {
     let parsed_result: Result<u32, _> = _s.label.parse();
-    match update_button(parsed_result, _ui) {
+    match update_item_data(parsed_result, _ui) {
       Ok(item) => {
         _s.item_info = format!("Item: id = {}, name = {}, hq = {}", item.id, item.name, item.can_be_hq);
       },
@@ -88,38 +88,13 @@ fn draw_center(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
   _ui.heading(&_s.item_info);
 }
 
+fn update_item_data<E: std::fmt::Debug>(parsed_result: Result<u32, E>, _ui: &mut egui::Ui) -> Result<Item, String> {
+  let e : String = "Not implemented yet.".to_owned();
+  Err(e)
+}
 
 fn draw_bottom(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
-  _ui.add(egui::github_link_file!(
-    "https://github.com/emilk/eframe_template/blob/main/",
-    "Source code."
-  ));
-
-  _ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-    egui::warn_if_debug_build(ui);
-  });
 }
 
-fn update_button<E: std::fmt::Debug>(parsed_result: Result<u32, E>, _ui: &mut egui::Ui) -> Result<Item, String> {
-  match parsed_result {
-    Ok(item_id) => {
-      match Item::get_item_from_id(item_id) {
-        Ok(item) => Ok(item),
-        Err(e) => {
-          eprintln!("Error: {}", e);
-          Err(format!("Error: {}", e))
-        },
-      }
-    },
-    Err(e) => {
-      eprintln!("Error parsing string to unsigned integer: {:?}", e);
-      Err(format!("Error parsing string to unsigned integer: {:?}", e))
-    },
-  }
-}
-
-
-fn clear_app()
-{
-
+fn clear_app() {
 }
