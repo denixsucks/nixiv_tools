@@ -1,21 +1,18 @@
-use crate::xivapi::models::item::Item;
+use crate::errlog;
+use crate::log;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
 pub struct NixivApp {
   label: String,
-  item_info: String,
-
-  #[serde(skip)]
-  value: f32,
+  information: String,
 }
 
 impl Default for NixivApp {
   fn default() -> Self {
     Self {
       label: "".to_owned(),
-      item_info: "".to_owned(),
-      value: 2.7,
+      information: "".to_owned(),
     }
   }
 }
@@ -41,7 +38,7 @@ impl eframe::App for NixivApp {
     });
 
     egui::CentralPanel::default().show(ctx, |ui| {
-      draw_center(self, ctx, ui);
+      draw_content(self, ctx, ui);
       ui.separator();
       draw_bottom(self, ctx, ui);
     });
@@ -69,32 +66,73 @@ fn draw_header(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
   });
 }
 
-fn draw_center(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
+fn draw_content(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
   _ui.heading("Nixiv Tools");
   _ui.text_edit_singleline(&mut _s.label);
 
   if _ui.button("Update").clicked() {
+    let res: String;
     let parsed_result: Result<u32, _> = _s.label.parse();
-    match update_item_data(parsed_result, _ui) {
-      Ok(item) => {
-        _s.item_info = format!("Item: id = {}, name = {}, hq = {}", item.id, item.name, item.can_be_hq);
+    match parsed_result {
+      Ok(id) => {
+        let item = get_data(id);
+        res = format!("Item: id = {}, name = {}, hq = {}", item.id, item.name, item.can_be_hq);
       },
       Err(e) => {
-        _s.item_info = format!("Failed to retrieve item: {}", e);
+        res = e.to_string();
       }
     }
+
+    _s.information = res;
   }
 
-  _ui.heading(&_s.item_info);
+  _ui.heading(&_s.information);
 }
 
-fn update_item_data<E: std::fmt::Debug>(parsed_result: Result<u32, E>, _ui: &mut egui::Ui) -> Result<Item, String> {
-  let e : String = "Not implemented yet.".to_owned();
-  Err(e)
+#[cfg(not(target_arch = "wasm32"))]
+fn get_data(id: u32) -> xivapi::models::item::Item {
+  // complete here
+  // let data = tokio::spawn(update_data(id));
+
+  errlog!("not implemented yet!");
+  return xivapi::models::item::Item::default_item();
 }
 
+#[cfg(target_arch = "wasm32")]
+fn get_data(id: u32) -> xivapi::models::item::Item {
+  // complete here
+  // let data = tokio::spawn(update_data(id));
+
+  errlog!("not implemented yet!");
+  return xivapi::models::item::Item::default_item();
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn update_data(id: u32) -> Result<xivapi::models::item::Item, String> {
+  match xivapi::models::item::Item::get_item_from_id(id).await {
+    Ok(item) => Ok(item),
+    Err(e) => {
+      errlog!("Error: {}", e);
+      Err(format!("Error: {}", e))
+    },
+  }
+}
+
+#[cfg(target_arch = "wasm32")]
+async fn update_data(id: u32) -> Result<Item, JsValue> {
+  match xivapi::models::item::Item::get_item_from_id(id).await {
+    Ok(item) => Ok(item),
+    Err(e) => {
+      errlog!(format!("Failed to retrieve item: {:?}", e));
+      Err(JsValue::from_str(&format!("Failed to retrieve item: {:?}", e)))
+    }
+  }
+}
+
+// TODO: Will be implemented
 fn draw_bottom(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
 }
 
+// TODO: Will be implemented
 fn clear_app() {
 }
