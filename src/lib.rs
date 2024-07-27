@@ -9,6 +9,9 @@ use wasm_bindgen_futures::spawn_local;
 #[cfg(target_arch = "wasm32")]
 use web_sys::console;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub use tokio::runtime::Runtime;
+
 #[macro_export]
 macro_rules! log {
   ($($t:tt)*) => {

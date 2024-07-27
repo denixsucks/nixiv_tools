@@ -1,5 +1,7 @@
-use tokio::runtime::Runtime;
 use crate::errlog;
+
+#[cfg(not(target_arch = "wasm32"))]
+use crate::Runtime;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)]
@@ -71,39 +73,57 @@ fn draw_content(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {
     _ui.text_edit_singleline(&mut _s.label);
 
     if _ui.button("Update").clicked() {
-        let res: String;
         let parsed_result: Result<u32, _> = _s.label.parse();
-        match parsed_result {
-            Ok(id) => {
-                let rt = Runtime::new().unwrap();
-                let result: Result<xivapi::models::item::Item, String> = rt.block_on(get_data(id));
-                match result {
-                    Ok(item) => {
-                        res = format!(
-                            "Item: id = {}, name = {}, hq = {}",
-                            item.id, item.name, item.can_be_hq
-                        );
-                    }
-                    Err(e) => {
-                        res = format!("Error fetching item: {}", e);
-                    }
-                }
-            }
-            Err(e) => {
-                res = format!("Error fetching item: {}", e);
-            }
-        }
-
-        _s.information = res;
+        _s.information = draw_item(parsed_result);
     }
 
     _ui.heading(&_s.information);
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn get_data(id: u32) -> Result<xivapi::models::item::Item, String> {
+fn draw_item(_parsed_result: Result<u32, std::num::ParseIntError>) -> String {
+    let res: String;
+    match _parsed_result {
+        Ok(id) => {
+            let rt: Runtime = Runtime::new().unwrap();
+            let result: Result<xivapi::models::item::Item, String> = rt.block_on(get_data(id));
+            match result {
+                Ok(item) => {
+                    res = format!(
+                        "Item: id = {}, name = {}, hq = {}",
+                        item.id, item.name, item.can_be_hq
+                    );
+                }
+                Err(e) => {
+                    res = format!("Error fetching item: {}", e);
+                }
+            }
+        }
+        Err(e) => {
+            res = format!("Error fetching item: {}", e);
+        }
+    }
+    return res;
+}
+
+#[cfg(target_arch = "wasm32")]
+fn draw_item(_parsed_result: Result<u32, std::num::ParseIntError>) -> String {
+    let res: String;
+    match _parsed_result {
+        Ok(_id) => {
+            res = format!("ok");
+        }
+        Err(e) => {
+            res = format!("Error fetching item: {}", e);
+        }
+    }
+    return res;
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn get_data(_id: u32) -> Result<xivapi::models::item::Item, String> {
     let handle = tokio::spawn(async move {
-        update_data(id).await
+        update_data(_id).await
     });
 
     match handle.await {
@@ -115,35 +135,16 @@ async fn get_data(id: u32) -> Result<xivapi::models::item::Item, String> {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn get_data(id: u32) -> xivapi::models::item::Item {
-    // complete here
-    // let data = tokio::spawn(update_data(id));
-
-    errlog!("not implemented yet!");
-    return xivapi::models::item::Item::default_item();
+pub async fn get_data(_id: u32) -> Result<xivapi::models::item::Item, String> {
+    return Ok(xivapi::models::item::Item::default_item())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-async fn update_data(id: u32) -> Result<xivapi::models::item::Item, String> {
-    match xivapi::models::item::Item::get_item_from_id(id).await {
+async fn update_data(_id: u32) -> Result<xivapi::models::item::Item, String> {
+    match xivapi::models::item::Item::get_item_from_id(_id).await {
         Ok(item) => Ok(item),
         Err(e) => {
             errlog!("Error: {}", e);
             Err(format!("Error: {}", e))
-        }
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-async fn update_data(id: u32) -> Result<Item, JsValue> {
-    match xivapi::models::item::Item::get_item_from_id(id).await {
-        Ok(item) => Ok(item),
-        Err(e) => {
-            errlog!(format!("Failed to retrieve item: {:?}", e));
-            Err(JsValue::from_str(&format!(
-                "Failed to retrieve item: {:?}",
-                e
-            )))
         }
     }
 }
