@@ -122,7 +122,7 @@ fn draw_item(_parsed_result: Result<u32, std::num::ParseIntError>) -> String {
 
 #[cfg(not(target_arch = "wasm32"))]
 async fn get_data(_id: u32) -> Result<xivapi::models::item::Item, String> {
-    let handle = tokio::spawn(async move {
+    let handle: tokio::task::JoinHandle<Result<xivapi::models::item::Item, String>> = tokio::spawn(async move {
         update_data(_id).await
     });
 

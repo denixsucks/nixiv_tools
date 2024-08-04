@@ -20,6 +20,7 @@ eframe = { version = "0.27.0", default-features = false, features = [
 ] }
 
 xivapi = { path = "xivapi" }
+universalis-api = { path = "universalis-api" }
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
 
