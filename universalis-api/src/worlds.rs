@@ -15,13 +15,15 @@ impl Default for DataCenter {
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct World {
+  pub id: u32,
   pub name: String,
 }
 
 impl Default for World {
   fn default() -> Self {
     Self {
-      name: "".to_owned(),
+      id: 0,
+      name: "".to_owned(),    
     }
   }
 }
