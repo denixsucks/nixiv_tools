@@ -1,19 +1,18 @@
 use crate::{worlds::DataCenter, worlds::World, Client, Error, Value, USER_AGENT};
 const BASE_URL: &str = "";
 
-pub async fn get_data_from_dc(endpoint: u32, dc: DataCenter) -> Result<Vec<Value>, Box<dyn Error>> {
+pub async fn get_data_from_dc(endpoint: String, dc: DataCenter) -> Result<Vec<Value>, Box<dyn Error>> {
   let mut datas: Vec<Value> = Vec::new();
   for world in dc.worlds {
-    let data: Value = get_data_from_world(endpoint, world).await?;
+    let data: Value = get_data_from_world(endpoint.to_owned(), world).await?;
     datas.push(data);
   }
 
   Ok(datas)
 }
 
-pub async fn get_data_from_world(endpoint: u32, world: World) -> Result<Value, Box<dyn Error>> {
-  let endpoint_str: String = endpoint.to_string();
-  let url = format!("{}/{}/{}", BASE_URL, endpoint_str, world.name);
+pub async fn get_data_from_world(endpoint: String, world: World) -> Result<Value, Box<dyn Error>> {
+  let url = format!("{}/{}/{}", BASE_URL, endpoint, world.name);
   let data: Value = get_data(url).await?;
   Ok(data)
 }

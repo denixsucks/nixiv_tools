@@ -15,4 +15,4 @@ pub async fn get_data(endpoint: u32, xiv_type: XIVType) -> Result<Value, Box<dyn
   let res = response.text().await?;
   let data: Value = serde_json::from_str(&res)?;
   Ok(data)
-}
+} 

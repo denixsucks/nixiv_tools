@@ -153,4 +153,6 @@ async fn update_data(_id: u32) -> Result<xivapi::models::item::Item, String> {
 fn draw_bottom(_s: &mut NixivApp, _ctx: &egui::Context, _ui: &mut egui::Ui) {}
 
 // TODO: Will be implemented
-fn clear_app() {}
+fn clear_app() {
+
+}
